@@ -1,0 +1,51 @@
+<p-toast />
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+
+<div class=" mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">s
+      <h4>Listado de Tareas</h4>
+      <ul class="list-group">
+        <li *ngFor="let task of tasks; "
+         class="list-group-item d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <span class="text-primary">{{ task.id }}. </span>
+            <span>{{ task.nombre}} - </span>
+            <strong>Completado: </strong>
+            <span>{{ task.completado}}</span>
+          </div>
+
+          <div class="button-container">
+          <button (click)="removeTask(task.id)" class="btn btn-danger mr-2">Remove Task</button>
+          <br>
+          <br>
+          <button (click)="viewTaskDetail(task.id)" class="btn btn-info">View Details  </button>>
+          <br>
+          <br>
+          <button *ngIf="!task.completado" class="btn btn-primary" (click)="editTask(task.id)">Editar</button>
+
+        </div>
+
+
+        </li>
+      </ul>
+
+
+      <form [formGroup]="taskForm" (ngSubmit)="addTask()" class="mb-3">
+        <div class="form-group">
+          <label for="taskName">Nombre de tarea</label>
+          <input type="text" id="taskName" formControlName="nombre" class="form-control mb-2"
+                 placeholder="Nombre de la tarea" required>
+        </div>
+        <div class="form-group">
+          <label for="taskCompleted">Completado</label>
+          <select id="taskCompleted" formControlName="completado" class="form-control mb-2">
+            <option value="true">Si</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Agregar</button>
+      </form>
+    </div>
+  </div>
+</div>

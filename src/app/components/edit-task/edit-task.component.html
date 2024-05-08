@@ -1,0 +1,24 @@
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <form [formGroup]="taskForm" (ngSubmit)="editTask()">
+    <div class="form-group">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" formControlName="nombre" class="form-control mb-2"
+      placeholder="Nombre de la tarea" required>
+    </div>
+
+    <div class="form-group">
+      <label for="completado">Completado</label>
+      <select id="completado" formControlName="completado" class="form-control mb-2">
+        <option value="true">Si</option>
+        <option value="false">No</option>
+      </select>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+      <button type="submit" class="btn btn-primary">Guardar</button>
+      <a routerLink="/tasks" class="btn btn-danger">Volver</a>
+    </div>
+  </form>
+
+  <p-toast></p-toast>
+</div>
