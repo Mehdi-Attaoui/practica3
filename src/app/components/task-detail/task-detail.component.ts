@@ -11,13 +11,17 @@ import { TaskService } from '../../services/task.service';
 export class TaskDetailComponent implements OnInit {
 
   task?: Task;
-  constructor(private route: ActivatedRoute, private taskService: TaskService) { }
+
+  constructor(
+    private route: ActivatedRoute,
+    private taskService: TaskService
+  ) { }
 
   ngOnInit(): void {
-
+    // Obtener el ID de la tarea desde la ruta
     const taskId = +this.route.snapshot.params['id'];
+    // Obtener los detalles de la tarea desde el servicio
     this.task = this.taskService.getTaskById(taskId);
-
   }
 
 }

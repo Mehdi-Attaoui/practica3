@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Task } from '../../interfaces/task.interface';
 import { TaskService } from '../../services/task.service';
@@ -11,54 +11,76 @@ import { MessageService } from 'primeng/api';
   styleUrls: ['./edit-task.component.css']
 })
 export class EditTaskComponent implements OnInit {
-
-  taskId!: string;
-  task: Task|undefined;
+  taskId!: number;
+  task: Task | undefined;
   taskForm!: FormGroup;
 
-  constructor( private route: ActivatedRoute,
+  constructor(
+    private route: ActivatedRoute,
     private formBuilder: FormBuilder,
     private router: Router,
     private taskService: TaskService,
-    private messageService: MessageService,) {
+    private messageService: MessageService
+  ) {}
 
+  ngOnInit(): void {
+    // Obtener el ID de la tarea a modificar
+    this.taskId = +this.route.snapshot.params['id'];
+    this.loadTask();
   }
 
-  ngOnInit(): void
-   {
-    const taskId = +this.route.snapshot.params['id'];
+  // Cargar los detalles de la tarea desde localStorage o desde el servicio
+  loadTask(): void {
+    const storedTasks = localStorage.getItem('tasks');
+    let tasks: Task[] = storedTasks ? JSON.parse(storedTasks) : this.taskService.getTasks();
 
-    this.task = this.taskService.getTaskById(taskId);
-
-    if (!this.task) {
-      const storedTask = localStorage.getItem('editedTask');
-      if (storedTask) {
-        this.task = JSON.parse(storedTask);
-      } else {
-        this.router.navigate(['/tasks']);
-        return;
-      }
+    if (tasks.length === 0) {
+      tasks = this.taskService.getTasks();
+      localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
-    this.taskForm = this.formBuilder.group({
-      nombre: [this.task!.nombre],
-      completado: [this.task!.completado]
-    });
+    // Encontrar la tarea con su ID
+    this.task = tasks.find(task => task.id === this.taskId);
+
+    if (this.task) {
+      // Inicializar el formulario con los datos de la tarea
+      this.taskForm = this.formBuilder.group({
+        nombre: [this.task.nombre, Validators.required],
+        completado: [this.task.completado]
+      });
+    } else {
+      // si no se encuentra la tarea =>  Redirigir a la lista de tareas
+      this.router.navigate(['/tasks']);
+    }
   }
 
+  // Editar la tarea
   editTask(): void {
-    const taskId = +this.route.snapshot.params['id'];
-    const updatedTask: Task = {
-      id: taskId,
-      nombre: this.taskForm.value.nombre,
-      completado: this.taskForm.value.completado
-    };
-    this.taskService.updateTask(updatedTask);
+    if (this.taskForm.valid) {
+      const updatedTask: Task = {
+        id: this.taskId,
+        nombre: this.taskForm.value.nombre,
+        completado: this.taskForm.value.completado
+      };
 
-    localStorage.setItem('editedTask', JSON.stringify(updatedTask));
+      this.taskService.updateTask(updatedTask);
 
-    this.messageService.add({severity:'success', summary:'Success', detail:'Editing successful'});
+      const storedTasks = localStorage.getItem('tasks');
+      let tasks: Task[] = storedTasks ? JSON.parse(storedTasks) : [];
+      const index = tasks.findIndex(task => task.id === this.taskId);
 
+      if (index !== -1) {
+        // Actualizar la tarea en localStorage
+        tasks[index] = updatedTask;
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+
+        // mensaje de éxito
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Tarea editada exitosamente' });
+        this.router.navigate(['/tasks']);
+      } else {
+        //si la tarea no se encuentra =>  mensaje de error
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Tarea no encontrada' });
+      }
+    }
   }
-
 }

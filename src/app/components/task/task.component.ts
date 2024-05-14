@@ -2,30 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { Task } from '../../interfaces/task.interface';
 import { TaskService } from '../../services/task.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-
-
-
-
 
 @Component({
   selector: 'app-task',
   templateUrl: './task.component.html',
-  styleUrl: './task.component.css',
+  styleUrls: ['./task.component.css'],
   providers: [ConfirmationService, MessageService]
 })
-export class TaskComponent implements OnInit{
-
-
-  ngOnInit(): void {
-    this.tasks = this.taskService.getTasks();
-  }
-
-
-
-  tasks: Task[] = this.taskService.getTasks();
+export class TaskComponent implements OnInit {
+  tasks: Task[] = [];
   taskForm: FormGroup;
 
   constructor(
@@ -34,79 +21,79 @@ export class TaskComponent implements OnInit{
     private formBuilder: FormBuilder,
     private messageService: MessageService,
     private router: Router
-  ){
-     this.taskForm = this.formBuilder.group({
+  ) {
+
+    // formulario con validacion
+    this.taskForm = this.formBuilder.group({
       nombre: ['', Validators.required],
       completado: [false]
     });
   }
 
+  ngOnInit(): void {
 
-  taskNew!: Task ;
+    // Cargar tareas desde localStorage al iniciar el componente
 
-
-
-
-
-  removeTask(id: number) {
-
-    this.confirmationService.confirm({
-      message : 'seguro?',
-      accept: () => {
-        this.taskService.removeTask(id);
-
-        this.tasks = this.taskService.getTasks();
-
-        this.messageService.add({severity:'success', summary:'Success', detail:'Tarea eliminada exitosamente'});
+    const storedTasks = localStorage.getItem('tasks');
+    if (storedTasks) {
+      this.tasks = JSON.parse(storedTasks);
+      if (this.tasks.length === 0) {
+        this.initializeTasksFromService();
       }
-    })
-
-
-
-
+    } else {
+      this.initializeTasksFromService();
+    }
   }
 
+  // Inicializar tareas desde el servicio y almacenarlas en localStorage
 
-  addTask(){
+  initializeTasksFromService(): void {
+    this.tasks = this.taskService.getTasks();
+    localStorage.setItem('tasks', JSON.stringify(this.tasks));
+  }
 
+  // Agregar una nueva tarea
+
+  addTask(): void {
     if (this.taskForm.valid) {
       const taskData = this.taskForm.value as Task;
 
-
-      let maxId = 0;
-      this.tasks.forEach(task => {
-          if (task.id > maxId) {
-              maxId = task.id;
-          }
-      });
-
-
+      // incrementar la id con 1
+      const maxId = this.tasks.reduce((max, task) => task.id > max ? task.id : max, 0);
       taskData.id = maxId + 1;
 
-
       this.taskService.addTask(taskData);
-      this.taskForm.reset();
       this.tasks = this.taskService.getTasks();
+      localStorage.setItem('tasks', JSON.stringify(this.tasks));
 
-      this.messageService.add({severity:'success', summary:'Success', detail:'Tarea agregada exitosamente'});
+      // Mostrar mensaje de exito
+      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Tarea agregada exitosamente' });
+    }
   }
 
+  // Eliminar una tarea
 
+  removeTask(id: number): void {
+    this.confirmationService.confirm({
+      message: '¿Seguro?',
+      accept: () => {
+        this.taskService.removeTask(id);
+        this.tasks = this.tasks.filter(task => task.id !== id);
+        localStorage.setItem('tasks', JSON.stringify(this.tasks));
 
+        // Mostrar mensaje de éxito
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Tarea eliminada exitosamente' });
+      }
+    });
   }
 
-
-  editTask(id: number) {
-
-
+  // Editar una tarea existente (navegar a la vista de edición)
+  editTask(id: number): void {
     this.router.navigate(['/edit', id]);
   }
 
-  viewTaskDetail(taskId: number) {
-
+  // Ver detalles de una tarea con 'id'
+  viewTaskDetail(taskId: number): void {
     this.router.navigate(['/detail', taskId]);
   }
-
-
-
 }
