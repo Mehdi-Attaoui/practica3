@@ -12,22 +12,27 @@ export class TaskService {
     { id: 4, nombre: 'java', completado: true }
   ];
 
+  // Obtener todas las tareas
   getTasks(): Task[] {
     return this.tasks;
   }
 
+  // Obtener una tarea por su ID
   getTaskById(id: number): Task | undefined {
     return this.tasks.find(task => task.id === id);
   }
 
+  // Agregar una nueva tarea
   addTask(task: Task): void {
     this.tasks.push(task);
   }
 
+  // Eliminar una tarea por su ID
   removeTask(id: number): void {
     this.tasks = this.tasks.filter(task => task.id !== id);
   }
 
+  // Actualizar una tarea
   updateTask(updatedTask: Task): void {
     const index = this.tasks.findIndex(task => task.id === updatedTask.id);
     if (index !== -1) {
